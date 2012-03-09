@@ -8,6 +8,7 @@ catch ex
   process.exit -1
 
 paypal = new Paypal username, password, sig # this runs against the sandbox
+paypal.debug = true
 
 session = {}
 paypal.shortExpressCheckout session, '9.45', success, cancel, (err, response) ->

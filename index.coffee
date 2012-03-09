@@ -9,6 +9,7 @@ class PayPal
   bnCode: 'PP-ECWizard'
   useProxy: false
   version: '64'
+  debug: false
 
   constructor: (@apiUserName, @apiPassword, @apiSignature, @sandboxFlag = true) ->
     if @sandboxFlag
@@ -18,6 +19,9 @@ class PayPal
       @apiEndpoint = 'https://api-3t.paypal.com/nvp'
       @paypalUrl = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token='
     @
+
+  log: (args...) ->
+    console.log.apply console, args if @debug
 
   ###
   # params: session, paymentAmt [, currencyCodeType, paymentType], returnUrl, cancelUrl, callback
@@ -47,19 +51,23 @@ class PayPal
       cb err, res
     @
 
-  hashCall: (methodName, hash, callback) ->
+  hashCall: (methodName, nvp, callback) ->
     qs = require 'querystring'
-    hash.method = methodName
-    hash.version = @version
-    hash.pwd = @apiPassword
-    hash.user = @apiUserName
-    hash.signature = @apiSignature
+    hash =
+      method: methodName
+      version: @version
+      pwd: @apiPassword
+      user: @apiUserName
+      signature: @apiSignature
+    hash[key] = value for key, value of nvp when nvp.hasOwnProperty key
     hash.buttonsource = @bnCode
 
     parts = []
     for key, value of hash when hash.hasOwnProperty key
       parts.push key.toUpperCase() + '=' + urlencode value
     payload = parts.join '&'
+
+    @log payload
 
     opts = 
       method: 'post'
