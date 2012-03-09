@@ -1,4 +1,5 @@
-# TODO: urldecode
+urlencode = encodeURIComponent
+urldecode = decodeURIComponent
 
 request = require 'request'
 
@@ -37,16 +38,17 @@ class PayPal
       cancelurl: cancelUrl
       paymentrequest_0_currencycode: currencyCodeType
 
-    @hashCall 'SetExpressCheckout', nvp, (err, res) ->
-      cb err, res if err?
-      ack = res.ack?.toLowerCase()
+    @hashCall 'SetExpressCheckout', hash, (err, res) ->
+      return cb err, res if err?
+      ack = res.ack
       if ack is 'success' or ack is 'successwithwarning'
         token = urldecode res.token
         session.token = token
       cb err, res
     @
 
-  hashCall: (methodName, hash) ->
+  hashCall: (methodName, hash, callback) ->
+    qs = require 'querystring'
     hash.method = methodName
     hash.version = @version
     hash.pwd = @apiPassword
@@ -56,7 +58,27 @@ class PayPal
 
     parts = []
     for key, value of hash when hash.hasOwnProperty key
-      parts = key.toUpperCase() + '=' + urlencode value
+      parts.push key.toUpperCase() + '=' + urlencode value
+    payload = parts.join '&'
+
+    opts = 
+      method: 'post'
+      url: @apiEndpoint
+      form: payload
+      sslStrict: false
+    request opts, (err, r, body) ->
+      return callback err, null if err
+      parts = body.split '&'
+      obj = {}
+      for part in parts
+        segment = part.split '='
+        key = segment[0].toLowerCase()
+        value = segment[1] if segment.length > 1
+        obj[key] = urldecode value
+      obj.ack = obj.ack?.toLowerCase()
+      if obj.ack is 'failure'
+        err = obj.l_longmessage0
+      callback err, obj
 
 
 module.exports = exports = PayPal 
