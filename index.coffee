@@ -31,7 +31,7 @@ class PayPal
     cancelUrl = args.pop()
     returnUrl = args.pop()
     currencyCodeType = 'USD'
-    paymentType = 'SALE'
+    paymentType = 'Sale'
     currencyCodeType = args.shift() if args.length
     paymentType = args.shift() if args.length
 
