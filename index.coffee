@@ -62,17 +62,16 @@ class PayPal
     hash[key] = value for key, value of nvp when nvp.hasOwnProperty key
     hash.buttonsource = @bnCode
 
-    parts = []
+    form = []
     for key, value of hash when hash.hasOwnProperty key
-      parts.push key.toUpperCase() + '=' + urlencode value
-    payload = parts.join '&'
+      form[key.toUpperCase()] = value
 
-    @log payload
+    @log form
 
     opts = 
       method: 'post'
       url: @apiEndpoint
-      form: payload
+      form: form
       sslStrict: false
     request opts, (err, r, body) ->
       return callback err, null if err
