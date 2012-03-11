@@ -24,30 +24,30 @@ class PayPal
     console.log.apply console, args if @debug
 
   ###
-  # params: session, paymentAmt [, currencyCodeType, paymentType], returnUrl, cancelUrl, callback
+  # params: paymentAmt [, currencyCodeType, paymentType], returnUrl, cancelUrl, callback
   ####
-  shortExpressCheckout: (session, paymentAmt, args...) ->
+  shortExpressCheckout: (paymentAmt, args...) ->
     cb = args.pop()
     cancelUrl = args.pop()
     returnUrl = args.pop()
+    noshipping = '0'
     currencyCodeType = 'USD'
     paymentType = 'Sale'
+    noshipping = args.shift() if args.length
     currencyCodeType = args.shift() if args.length
     paymentType = args.shift() if args.length
 
     hash = 
-      paymentrequest_0_amt: paymentAmt
-      paymentrequest_0_paymentaction: paymentType
+      paymentrequest: [{
+        amt: paymentAmt
+        paymentaction: paymentType
+        currencycode: currencyCodeType
+      }]
       returnurl: returnUrl
       cancelurl: cancelUrl
-      paymentrequest_0_currencycode: currencyCodeType
 
     @hashCall 'SetExpressCheckout', hash, (err, res) ->
       return cb err, res if err?
-      ack = res.ack
-      if ack is 'success' or ack is 'successwithwarning'
-        token = urldecode res.token
-        session.token = token
       cb err, res
     @
 
@@ -59,7 +59,18 @@ class PayPal
       pwd: @apiPassword
       user: @apiUserName
       signature: @apiSignature
-    hash[key] = value for key, value of nvp when nvp.hasOwnProperty key
+    for key, value of nvp when nvp.hasOwnProperty key
+      if typeof value is 'object'
+        for tmp, index in value
+          @log index
+          if typeof tmp is 'object'
+            for k,v of tmp when tmp.hasOwnProperty k
+              @log k, v
+              hash["#{key}_#{index}_#{k}"] = v
+          else
+            hash["l_#{key}#{index}"] = tmp
+      else
+        hash[key] = value 
     hash.buttonsource = @bnCode
 
     form = []
@@ -74,6 +85,8 @@ class PayPal
       form: form
       sslStrict: false
     request opts, (err, r, body) ->
+      SIMPLE_ARRAY = /^l_(.+)([0-9]+)$/
+      OBJECT_ARRAY = /^(.+)_([0-9]+)_(.+)$/
       return callback err, null if err
       parts = body.split '&'
       obj = {}
@@ -81,10 +94,21 @@ class PayPal
         segment = part.split '='
         key = segment[0].toLowerCase()
         value = segment[1] if segment.length > 1
-        obj[key] = urldecode value
+        value = urldecode value
+        if SIMPLE_ARRAY.test key
+          console.log 'deal with simple arrays', key
+          keyparts = SIMPLE_ARRAY.exec key
+          a = obj[keyparts[1]]
+          a = [] unless a?
+          a[+keyparts[2]] = value
+          obj[keyparts[1]] = a
+        else if OBJECT_ARRAY.test key
+          console.log 'Object Array', key
+        else
+          obj[key] = value
       obj.ack = obj.ack?.toLowerCase()
       if obj.ack is 'failure'
-        err = obj.l_longmessage0
+        err = obj.longmessage[0]
       callback err, obj
 
 

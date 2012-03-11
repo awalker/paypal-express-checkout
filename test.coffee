@@ -11,6 +11,8 @@ paypal = new Paypal username, password, sig # this runs against the sandbox
 paypal.debug = true
 
 session = {}
-paypal.shortExpressCheckout session, '9.45', success, cancel, (err, response) ->
+paypal.shortExpressCheckout '9.45', success, cancel, (err, response) ->
   console.error err.stack or err if err
   console.log response
+  unless err
+    console.log 'should redirect to ' + paypal.paypalUrl + response.token
