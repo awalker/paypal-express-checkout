@@ -70,7 +70,7 @@ class PayPal
     hash =
       paymentrequest: [paymentRequest]
       returnurl: returnUrl
-      cancelurl: cancelurl
+      cancelurl: cancelUrl
     @hashCall 'SetExpressCheckout', hash, cb
     @
 
