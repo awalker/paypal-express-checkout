@@ -8,7 +8,7 @@
   },
   "main": "index.coffee",
   "engines": {
-    "node": "~0.6.11"
+    "node": "~0.6.0"
   },
   "dependencies": {
     "coffee-script": ">= 1.2.0" ,
