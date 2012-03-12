@@ -56,7 +56,6 @@ class PayPal
     @hashCall 'SetExpressCheckout', hash, (err, res) ->
       return cb err, res if err?
       cb err, res
-    @
 
   expressCheckout: (amt, returnUrl, cancelUrl, cb) ->
     if typeof amt is 'object'
@@ -72,7 +71,6 @@ class PayPal
       returnurl: returnUrl
       cancelurl: cancelUrl
     @hashCall 'SetExpressCheckout', hash, cb
-    @
 
   markExpressCheckout: (amt, currencyCode, paymentType, returnUrl, cancelUrl, args..., cb) ->
     pr = 
