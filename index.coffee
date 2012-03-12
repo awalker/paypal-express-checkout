@@ -172,8 +172,9 @@ class PayPal
       url: @apiEndpoint
       form: form
       sslStrict: false
-    request opts, (err, r, body) ->
+    request opts, (err, r, body) =>
       return callback err, null if err
+      @log body if body?
       parts = body.split '&'
       obj = {}
       for part in parts
@@ -189,6 +190,17 @@ class PayPal
           a[+keyparts[2]] = value
           obj[keyparts[1]] = a
         else if OBJECT_ARRAY.test key
+          keyparts = OBJECT_ARRAY.exec key
+          a = obj[keyparts[1]]
+          a = [] unless a?
+          index = +keyparts[2]
+          if index < a.length
+            o = a[index]
+          else
+            o = {}
+          o[keyparts[3]] = value
+          a[index] = o
+          obj[keyparts[1]] = a
           console.log 'Object Array', key
         else
           obj[key] = value
