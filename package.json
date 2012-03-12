@@ -15,5 +15,9 @@
     "request": ">= 0.0.1"
   },
   "devDependencies": {},
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://awalker@github.com/awalker/paypal-express-checkout.git"
+  }
 }
